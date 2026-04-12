@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>뭉이 미로찾기</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-box">
+          <p class="brand-eyebrow">CAT MAZE ADVENTURE</p>
+          <h1 class="brand-title">뭉이 미로찾기</h1>
+        </div>
+
+        <div class="topbar-status">
+          <div class="top-chip">
+            <span class="label">Stage</span>
+            <strong id="stageLabel">1</strong>
+          </div>
+          <div class="top-chip">
+            <span class="label">이동</span>
+            <strong id="moveCount">0</strong>
+          </div>
+          <div class="top-chip danger">
+            <span class="label">남은 이동</span>
+            <strong id="remainingMoves">0</strong>
+          </div>
+        </div>
+      </header>
+
+      <main class="game-layout">
+        <aside class="panel panel-left">
+          <section class="panel-card intro-card">
+            <p class="panel-kicker">Mission</p>
+            <h2 id="stageTitle" class="panel-title">Stage 1</h2>
+            <p id="stageDescription" class="panel-text">
+              출구까지 무사히 도착하세요.
+            </p>
+          </section>
+
+          <section class="panel-card guide-card">
+            <p class="panel-kicker">Guide</p>
+            <ul class="guide-list">
+              <li>PC에서는 <strong>방향키</strong>로 이동</li>
+              <li>모바일에서는 하단 방향 버튼 사용</li>
+              <li>
+                스테이지마다 <strong>이동 제한</strong> 안에 클리어해야 성공
+              </li>
+            </ul>
+          </section>
+
+          <section class="panel-card action-card">
+            <button id="startBtn" class="primary-btn" type="button">
+              시작하기
+            </button>
+            <button id="restartBtn" class="primary-btn" type="button">
+              현재 스테이지 다시하기
+            </button>
+          </section>
+        </aside>
+
+        <section class="board-section">
+          <div class="board-frame">
+            <div class="board-header">
+              <div class="board-badge" id="fogStatus">전체 시야</div>
+              <div class="board-badge" id="bestRecordLabel">최고기록: -</div>
+            </div>
+
+            <div class="canvas-wrap">
+              <canvas id="mazeCanvas" width="480" height="480"></canvas>
+
+              <div id="overlay" class="overlay hidden">
+                <div class="overlay-card">
+                  <p id="overlayTag" class="overlay-tag">STAGE CLEAR</p>
+                  <h3 id="overlayTitle" class="overlay-title">
+                    스테이지 클리어!
+                  </h3>
+                  <p id="overlayText" class="overlay-text">
+                    다음 스테이지로 이동합니다.
+                  </p>
+
+                  <div class="overlay-actions">
+                    <button
+                      id="overlayPrimaryBtn"
+                      class="primary-btn"
+                      type="button"
+                    >
+                      다음 스테이지
+                    </button>
+                    <button
+                      id="overlaySecondaryBtn"
+                      class="ghost-btn"
+                      type="button"
+                    >
+                      다시하기
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mobile-controls" aria-label="모바일 방향키">
+            <button type="button" class="control-btn" data-dir="up">↑</button>
+            <div class="mobile-controls-row">
+              <button type="button" class="control-btn" data-dir="left">
+                ←
+              </button>
+              <button type="button" class="control-btn" data-dir="down">
+                ↓
+              </button>
+              <button type="button" class="control-btn" data-dir="right">
+                →
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel panel-right">
+          <section class="panel-card status-card">
+            <p class="panel-kicker">Status</p>
+
+            <div class="stat-row">
+              <span>현재 스테이지</span>
+              <strong id="sideStage">1</strong>
+            </div>
+
+            <div class="stat-row">
+              <span>이동 수</span>
+              <strong id="sideMoves">0</strong>
+            </div>
+
+            <div class="stat-row">
+              <span>이동 제한</span>
+              <strong id="sideMoveLimit">0</strong>
+            </div>
+
+            <div class="stat-row">
+              <span>남은 이동</span>
+              <strong id="sideRemaining">0</strong>
+            </div>
+          </section>
+
+          <section class="panel-card progress-card">
+            <p class="panel-kicker">Progress</p>
+            <div class="progress-bar">
+              <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <p id="progressText" class="progress-text">1 / 4 Stage</p>
+          </section>
+
+          <section class="panel-card hint-card">
+            <p class="panel-kicker">Mood</p>
+            <p class="panel-text">
+              Stage 1은 전체 맵이 보이고, Stage 2부터는 주변만 밝게 보여서 길을
+              기억하며 이동해야 해.
+            </p>
+          </section>
+          <section class="panel-card link-card">
+            <p class="panel-kicker">코딩을 처음 시작하고 싶다면</p>
+            <a
+              class="link-cta"
+              href="http://as-sbsart.kr/eduRenewal/web/frontendSignature.asp"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              과정 문의하기
+            </a>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="./game.js"></script>
+  </body>
+</html>
