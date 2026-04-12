@@ -618,7 +618,7 @@ function drawFog() {
       if (wasVisited) {
         ctx.fillStyle = "rgba(18, 12, 10, 0.88)";
       } else {
-        ctx.fillStyle = "rgba(8, 5, 4, 0.97)";
+        ctx.fillStyle = "rgba(8, 5, 4, 0.99)";
       }
 
       ctx.fillRect(px, py, tileSize, tileSize);
