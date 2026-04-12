@@ -747,7 +747,7 @@ function handleStageFail() {
     title: "이동 제한 초과!",
     text: "남은 이동 수를 모두 사용했어. 현재 스테이지를 다시 도전해보자.",
     primaryText: "다시 도전하기",
-    secondaryText: "처음부터 하지 않기",
+    secondaryText: "화이팅!",
     onPrimary: () => {
       isLocked = false;
       loadStage(currentStageIndex);
