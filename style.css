@@ -395,7 +395,7 @@ canvas {
 }
 
 .link-card {
-    display: flex;
+  display: flex;
   flex-direction: column;
   gap: 14px;
   background: rgba(255, 248, 236, 0.92);
@@ -440,6 +440,9 @@ canvas {
 .link-cta:focus-visible {
   outline: 3px solid rgba(232, 185, 79, 0.45);
   outline-offset: 3px;
+}
+.mobile-play-hud {
+  display: none;
 }
 
 @media (max-width: 1180px) {
@@ -491,8 +494,12 @@ canvas {
     padding: 14px;
     border-radius: 26px;
   }
-
+  .canvas-wrap {
+    width: 100%;
+  }
   canvas {
+    width: min(100%, 88vw);
+    max-width: 420px;
     border-radius: 22px;
   }
 
@@ -503,9 +510,52 @@ canvas {
   .overlay-actions {
     flex-direction: column;
   }
+  .mobile-play-hud {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+    position: sticky;
+    top: 8px;
+    z-index: 20;
+  }
+
+  .mobile-play-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 58px;
+    padding: 8px 10px;
+    border-radius: 16px;
+    background: rgba(255, 248, 236, 0.95);
+    border: 1px solid rgba(143, 114, 102, 0.18);
+    box-shadow: 0 10px 20px rgba(84, 57, 43, 0.08);
+    backdrop-filter: blur(6px);
+  }
+
+  .mobile-play-chip span {
+    font-size: 0.72rem;
+    color: var(--subtext);
+    font-weight: 700;
+  }
+
+  .mobile-play-chip strong {
+    margin-top: 4px;
+    font-size: 1rem;
+    color: var(--text);
+  }
+
+  .mobile-play-chip.danger strong {
+    color: var(--danger);
+  }
 }
 
 @media (max-width: 480px) {
+  canvas {
+    width: min(100%, 84vw);
+    max-width: 360px;
+  }
   .app-shell {
     width: calc(100% - 14px);
   }

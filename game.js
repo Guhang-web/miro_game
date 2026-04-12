@@ -390,6 +390,9 @@ function updateUI() {
   const stage = getCurrentStage();
   const remainingMoves = getRemainingMoves();
   const best = getBestRecord(stage.id);
+  const mobileStageEl = document.getElementById("mobileStage");
+  const mobileMovesEl = document.getElementById("mobileMoves");
+  const mobileRemainingEl = document.getElementById("mobileRemaining");
 
   stageLabel.textContent = stage.id;
   moveCountEl.textContent = String(moveCount);
@@ -408,6 +411,11 @@ function updateUI() {
   fogStatusEl.textContent = stage.fog ? "안개 시야" : "전체 시야";
   bestRecordLabelEl.textContent =
     best !== null ? `최고기록: ${best}회` : "최고기록: -";
+
+  if (mobileStageEl) mobileStageEl.textContent = String(stage.id);
+  if (mobileMovesEl) mobileMovesEl.textContent = String(moveCount);
+  if (mobileRemainingEl)
+    mobileRemainingEl.textContent = String(Math.max(remainingMoves, 0));
 }
 
 function showOverlay({
