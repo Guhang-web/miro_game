@@ -270,15 +270,19 @@ function getBestRecord(stageId) {
 }
 
 function updateCanvasSize() {
-  const displayWidth = Math.min(canvas.clientWidth || BASE_CANVAS_SIZE, 640);
+  const wrap = canvas.parentElement;
+  if (!wrap) return;
+
+  const wrapWidth = wrap.clientWidth;
+  const maxBoardSize = window.innerWidth <= 480 ? 360 : window.innerWidth <= 768 ? 420 : 640;
+  const displayWidth = Math.min(wrapWidth, maxBoardSize);
   const ratio = window.devicePixelRatio || 1;
 
-  canvas.width = displayWidth * ratio;
-  canvas.height = displayWidth * ratio;
-  canvas.style.width = `${displayWidth}px`;
-  canvas.style.height = `${displayWidth}px`;
+  canvas.width = Math.floor(displayWidth * ratio);
+  canvas.height = Math.floor(displayWidth * ratio);
 
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
   tileSize = displayWidth / GRID_SIZE;
 }
 
@@ -836,7 +840,14 @@ restartBtn.addEventListener("click", () => {
   loadStage(currentStageIndex);
 });
 
-window.addEventListener("resize", resizeCanvasAndDraw);
+let resizeTimer = null;
+
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    resizeCanvasAndDraw();
+  }, 100);
+});
 
 function init() {
   loadStage(currentStageIndex);
