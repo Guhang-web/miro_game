@@ -189,6 +189,9 @@ button {
   font-weight: 800;
   box-shadow: 0 12px 22px rgba(110, 82, 70, 0.18);
 }
+#updateStageBtn{
+  margin-top: 10px;
+}
 
 .primary-btn:hover {
   transform: translateY(-2px);

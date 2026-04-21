@@ -1,3 +1,5 @@
+import { stages } from "./stages.js";
+
 const canvas = document.getElementById("mazeCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -24,6 +26,7 @@ const overlaySecondaryBtn = document.getElementById("overlaySecondaryBtn");
 
 const startBtn = document.getElementById("startBtn");
 const restartBtn = document.getElementById("restartBtn");
+const updateStageBtn = document.getElementById("updateStageBtn");
 
 const PLAYER_IMAGE_PATH = "./img/mung1.png";
 const GRID_SIZE = 10;
@@ -38,185 +41,8 @@ playerImg.src = PLAYER_IMAGE_PATH;
 
 let goalPosition = { x: 0, y: 0 };
 
-const stages = [
-  {
-    id: 1,
-    name: "Stage 1",
-    description: "튜토리얼 스테이지. 전체 미로를 보고 이동 감각을 익혀보세요.",
-    moveLimit: 22,
-    fog: false,
-    visionRadius: 99,
-    start: { x: 0, y: 0 },
-    goal: { x: 9, y: 8 },
-    maze: [
-      [0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-      [1, 1, 1, 0, 1, 0, 1, 1, 0, 1],
-      [1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
-      [1, 0, 1, 1, 1, 1, 1, 0, 1, 1],
-      [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [1, 1, 1, 1, 1, 0, 1, 1, 0, 1],
-      [1, 0, 0, 0, 1, 0, 0, 1, 0, 1],
-      [1, 0, 1, 0, 0, 0, 1, 1, 0, 0],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    ],
-  },
-  {
-    id: 2,
-    name: "Stage 2",
-    description: "안개 시야가 시작됩니다. 주변만 확인하며 길을 기억해보세요.",
-    moveLimit: 22,
-    fog: true,
-    visionRadius: 1.5,
-    start: { x: 0, y: 0 },
-    goal: { x: 9, y: 8 },
-    maze: [
-      [0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 0, 0, 0, 1, 0, 0, 0, 1],
-      [1, 0, 0, 1, 0, 1, 0, 1, 0, 1],
-      [1, 0, 1, 1, 0, 0, 0, 1, 0, 1],
-      [1, 0, 0, 0, 1, 1, 0, 1, 0, 1],
-      [1, 1, 1, 0, 0, 0, 0, 1, 0, 1],
-      [1, 0, 0, 0, 1, 1, 1, 1, 0, 1],
-      [1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
-      [1, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    ],
-  },
-  {
-    id: 3,
-    name: "Stage 3",
-    description: "중앙 구역을 관통해야 합니다. 잘못 돌면 크게 돌아가게 됩니다.",
-    moveLimit: 21,
-    fog: true,
-    visionRadius: 1,
-    start: { x: 0, y: 0 },
-    goal: { x: 9, y: 8 },
-    maze: [
-      [0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-      [1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
-      [1, 0, 0, 1, 0, 0, 0, 1, 0, 1],
-      [1, 0, 1, 1, 1, 1, 0, 1, 0, 1],
-      [1, 0, 0, 0, 0, 1, 0, 1, 0, 1],
-      [1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
-      [1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-      [1, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    ],
-  },
-  {
-    id: 4,
-    name: "Stage 4",
-    description: "좁은 우회 루트가 많아지고, 이동 제한 비밀.",
-    moveLimit: 37,
-    fog: true,
-    visionRadius: 1,
-    start: { x: 0, y: 0 },
-    goal: { x: 9, y: 8 },
-    maze: [
-      [0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-      [1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
-      [1, 0, 1, 0, 1, 0, 1, 1, 0, 1],
-      [1, 0, 0, 0, 1, 0, 0, 1, 0, 1],
-      [1, 1, 1, 1, 1, 1, 0, 1, 0, 1],
-      [1, 0, 0, 0, 0, 1, 0, 1, 0, 1],
-      [1, 0, 1, 1, 0, 1, 0, 1, 0, 1],
-      [1, 0, 0, 1, 0, 0, 0, 1, 1, 1],
-      [1, 1, 0, 0, 1, 1, 1, 0, 0, 0],
-      [1, 1, 1, 0, 0, 0, 0, 0, 1, 1],
-    ],
-  },
-  {
-    id: 5,
-    name: "Stage 5",
-    description: "갈림길과 막다른 길이 많습니다. 섣부른 선택이 치명적입니다.",
-    moveLimit: 30,
-    fog: true,
-    visionRadius: 1,
-    start: { x: 0, y: 0 },
-    goal: { x: 9, y: 8 },
-    maze: [
-      [0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 0, 0, 1, 1, 0, 0, 0, 1],
-      [1, 0, 0, 1, 1, 0, 0, 1, 0, 1],
-      [1, 0, 1, 0, 0, 0, 1, 0, 0, 1],
-      [1, 0, 1, 0, 1, 1, 1, 0, 1, 1],
-      [1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
-      [1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
-      [1, 0, 0, 0, 1, 0, 0, 1, 0, 1],
-      [1, 1, 1, 0, 0, 1, 1, 1, 0, 0],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    ],
-  },
-  {
-    id: 6,
-    name: "Stage 6",
-    description:
-      "출구 위치가 매번 바뀝니다. 외벽으로 이어지는 루트를 빠르게 읽어야 합니다.",
-    moveLimit: 26,
-    fog: true,
-    visionRadius: 1,
-    randomGoal: true,
-    start: { x: 0, y: 0 },
-    maze: [
-      [0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
-      [1, 1, 1, 1, 0, 1, 0, 1, 0, 0],
-      [1, 0, 0, 0, 0, 1, 0, 1, 0, 1],
-      [1, 0, 1, 1, 0, 0, 0, 1, 0, 1],
-      [1, 0, 1, 0, 0, 1, 1, 1, 0, 1],
-      [1, 0, 1, 1, 1, 1, 0, 0, 0, 1],
-      [1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-      [1, 1, 1, 1, 1, 0, 1, 1, 0, 1],
-      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-    ],
-  },
-  {
-    id: 7,
-    name: "Stage 7",
-    description: "출구 위치가 매번 바뀝니다.",
-    moveLimit: 34,
-    fog: true,
-    visionRadius: 1,
-    randomGoal: true,
-    start: { x: 0, y: 0 },
-    maze: [
-      [0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-      [0, 1, 1, 1, 0, 1, 0, 1, 0, 1],
-      [0, 0, 0, 0, 1, 1, 0, 1, 0, 1],
-      [0, 1, 1, 1, 0, 1, 0, 1, 0, 1],
-      [0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
-      [0, 1, 1, 1, 1, 0, 0, 1, 0, 1],
-      [0, 0, 0, 0, 0, 0, 1, 1, 0, 1],
-      [0, 1, 1, 1, 1, 1, 0, 1, 0, 1],
-      [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-      [0, 1, 1, 1, 0, 0, 1, 1, 1, 1],
-    ],
-  },
-  {
-    id: 8,
-    name: "Stage 8",
-    description: "시야가 극한으로 좁아집니다. 감을 이용하세요.",
-    moveLimit: 41,
-    fog: true,
-    visionRadius: 0.4,
-    start: { x: 0, y: 0 },
-    goal: { x: 9, y: 4 },
-    maze: [
-      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-      [0, 0, 0, 1, 0, 1, 0, 0, 0, 1],
-      [1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
-      [0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-      [0, 1, 0, 1, 1, 0, 1, 1, 0, 1],
-      [0, 1, 0, 0, 0, 0, 1, 1, 0, 1],
-      [0, 1, 1, 1, 1, 1, 0, 0, 0, 1],
-      [0, 1, 0, 0, 0, 1, 0, 1, 0, 1],
-      [0, 0, 0, 1, 0, 0, 0, 0, 1, 1],
-    ],
-  },
-];
+let keyPosition = null;
+let hasKey = false;
 
 let currentStageIndex = 0;
 let currentMaze = [];
@@ -274,7 +100,8 @@ function updateCanvasSize() {
   if (!wrap) return;
 
   const wrapWidth = wrap.clientWidth;
-  const maxBoardSize = window.innerWidth <= 480 ? 360 : window.innerWidth <= 768 ? 420 : 640;
+  const maxBoardSize =
+    window.innerWidth <= 480 ? 360 : window.innerWidth <= 768 ? 420 : 640;
   const displayWidth = Math.min(wrapWidth, maxBoardSize);
   const ratio = window.devicePixelRatio || 1;
 
@@ -363,12 +190,21 @@ function getFallbackGoalPosition(stage) {
   const randomIndex = Math.floor(Math.random() * candidates.length);
   return candidates[randomIndex];
 }
+function isGoalVisible() {
+  const stage = getCurrentStage();
+
+  if (!stage.requiresKey) return true;
+  if (!stage.revealGoalWithKey) return true;
+
+  return hasKey;
+}
 
 function loadStage(index) {
   const stage = stages[index];
   currentMaze = stage.maze.map((row) => [...row]);
   moveCount = 0;
   visited = createVisitedGrid();
+  hasKey = false;
 
   player.x = stage.start.x;
   player.y = stage.start.y;
@@ -382,6 +218,12 @@ function loadStage(index) {
     goalPosition = { ...stage.goal };
   } else {
     goalPosition = { x: stage.start.x, y: stage.start.y };
+  }
+
+  if (stage.requiresKey && stage.key) {
+    keyPosition = { ...stage.key };
+  } else {
+    keyPosition = null;
   }
 
   markVisited(player.x, player.y);
@@ -532,6 +374,18 @@ function drawGoalTile(gridX, gridY) {
   ctx.fillRect(px + 6, py + 6, tileSize - 12, Math.max(3, tileSize * 0.08));
 }
 
+function drawKeyTile(gridX, gridY) {
+  const px = gridX * tileSize;
+  const py = gridY * tileSize;
+
+  ctx.save();
+  ctx.font = `${tileSize * 0.55}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("🔑", px + tileSize / 2, py + tileSize / 2);
+  ctx.restore();
+}
+
 function drawMaze() {
   if (!currentMaze || currentMaze.length === 0) return;
 
@@ -547,7 +401,16 @@ function drawMaze() {
         drawFloorTile(x, y);
       }
 
-      if (goalPosition.x === x && goalPosition.y === y) {
+      if (
+        keyPosition &&
+        !hasKey &&
+        keyPosition.x === x &&
+        keyPosition.y === y
+      ) {
+        drawKeyTile(x, y);
+      }
+
+      if (isGoalVisible() && goalPosition.x === x && goalPosition.y === y) {
         drawGoalTile(x, y);
       }
     }
@@ -612,7 +475,9 @@ function drawFog() {
 
       const isVisible = distance <= stage.visionRadius;
       const wasVisited = visited[y]?.[x];
-      const isGoalTile = x === goalPosition.x && y === goalPosition.y;
+      const isGoalTile =
+        isGoalVisible() && x === goalPosition.x && y === goalPosition.y;
+
       if (isVisible || isGoalTile) continue;
 
       if (wasVisited) {
@@ -790,10 +655,51 @@ function tryMove(dx, dy) {
   moveCount += 1;
   markVisited(player.x, player.y);
 
+  const stage = getCurrentStage();
+  let justGotKey = false;
+
+  if (
+    stage.requiresKey &&
+    !hasKey &&
+    keyPosition &&
+    player.x === keyPosition.x &&
+    player.y === keyPosition.y
+  ) {
+    hasKey = true;
+    keyPosition = null;
+    justGotKey = true;
+  }
+
   isMoving = true;
   updateUI();
 
-  if (player.x === goalPosition.x && player.y === goalPosition.y) {
+  if (justGotKey) {
+    isLocked = true;
+
+    showOverlay({
+      tag: "KEY GET",
+      title: "열쇠를 획득했다!",
+      text: "숨겨져 있던 출구가 나타났어.",
+      primaryText: "계속하기",
+      secondaryText: "가자!",
+      onPrimary: () => {
+        hideOverlay();
+        isLocked = false;
+      },
+      onSecondary: () => {
+        hideOverlay();
+        isLocked = false;
+      },
+    });
+
+    return;
+  }
+
+  if (
+    isGoalVisible() &&
+    player.x === goalPosition.x &&
+    player.y === goalPosition.y
+  ) {
     handleStageClear();
     return;
   }
@@ -831,12 +737,27 @@ document.querySelectorAll("[data-dir]").forEach((button) => {
 startBtn.addEventListener("click", () => {
   hideOverlay();
   isLocked = false;
+  currentStageIndex = 0;
   loadStage(currentStageIndex);
 });
 
 restartBtn.addEventListener("click", () => {
   hideOverlay();
   isLocked = false;
+  loadStage(currentStageIndex);
+});
+
+updateStageBtn.addEventListener("click", () => {
+  const targetStageNumber = 9;
+
+  if (targetStageNumber < 1 || targetStageNumber > stages.length) {
+    alert("해당 스테이지는 아직 준비되지 않았어요.");
+    return;
+  }
+
+  hideOverlay();
+  isLocked = false;
+  currentStageIndex = targetStageNumber - 1;
   loadStage(currentStageIndex);
 });
 
