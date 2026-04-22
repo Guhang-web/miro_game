@@ -584,7 +584,7 @@ function handleStageClear() {
       title: "다음 스테이지 2주마다 업데이트 합니다!",
       text: `최종 이동 수는 ${moveCount}회야. 멋지게 끝냈다!`,
       primaryText: "처음부터 다시하기",
-      secondaryText: "현재 스테이지 다시하기",
+      secondaryText: "현재 스테이지 다시",
       onPrimary: () => {
         currentStageIndex = 0;
         isLocked = false;
@@ -603,7 +603,7 @@ function handleStageClear() {
     title: `${stage.name} 클리어!`,
     text: `이동 수 ${moveCount}회로 성공했어. 다음 스테이지로 넘어가자!`,
     primaryText: "다음 스테이지",
-    secondaryText: "현재 스테이지 다시하기",
+    secondaryText: "현재 스테이지 다시",
     onPrimary: () => {
       currentStageIndex += 1;
       isLocked = false;
@@ -780,7 +780,7 @@ function init() {
     title: "게임 시작 준비 완료!",
     text: "시작하기 버튼을 눌러 첫 스테이지를 시작하세요.",
     primaryText: "시작하기",
-    secondaryText: "대기",
+    secondaryText: "화이팅!",
     onPrimary: () => {
       hideOverlay();
       isLocked = false;
@@ -788,7 +788,8 @@ function init() {
     },
     onSecondary: () => {
       hideOverlay();
-      isLocked = true;
+      isLocked = false;
+      loadStage(currentStageIndex);
     },
   });
 
