@@ -27,11 +27,16 @@ const overlaySecondaryBtn = document.getElementById("overlaySecondaryBtn");
 const startBtn = document.getElementById("startBtn");
 const restartBtn = document.getElementById("restartBtn");
 const updateStageBtn = document.getElementById("updateStageBtn");
+const stageSelectBtn = document.getElementById("stageSelectBtn");
+const stageSelectModalEl = document.getElementById("stageSelectModal");
+const stageSelectListEl = document.getElementById("stageSelectList");
+const stageSelectCloseBtn = document.getElementById("stageSelectCloseBtn");
 
 const PLAYER_IMAGE_PATH = "./img/mung1.png";
 const GRID_SIZE = 10;
 const BASE_CANVAS_SIZE = 480;
 const STORAGE_KEY = "cat-maze-best-records";
+const UPDATE_STAGE_NUMBER = 13;
 
 canvas.width = BASE_CANVAS_SIZE;
 canvas.height = BASE_CANVAS_SIZE;
@@ -49,6 +54,10 @@ let currentMaze = [];
 let moveCount = 0;
 let isMoving = false;
 let isLocked = false;
+let isPreviewingStage = false;
+let previewTimer = null;
+let canRestartCurrentStage = true;
+let stageSelectPreviousLocked = false;
 let visited = createVisitedGrid();
 let tileSize = canvas.width / GRID_SIZE;
 
@@ -70,6 +79,29 @@ function getCurrentStage() {
 
 function getRemainingMoves() {
   return getCurrentStage().moveLimit - moveCount;
+}
+
+function isMemoryMazeStage(stage = getCurrentStage()) {
+  return stage.memoryMaze === true;
+}
+
+function canUseRestartButton() {
+  const stage = getCurrentStage();
+
+  if (!isMemoryMazeStage(stage)) return true;
+
+  return canRestartCurrentStage;
+}
+
+function updateRestartButtonState() {
+  if (!restartBtn) return;
+
+  const shouldDisable = !canUseRestartButton();
+
+  restartBtn.disabled = shouldDisable;
+  restartBtn.title = shouldDisable
+    ? "기억의 미로는 클리어하거나 실패했을 때만 다시 도전할 수 있어요."
+    : "";
 }
 
 function loadBestRecords() {
@@ -201,6 +233,7 @@ function isGoalVisible() {
 
 function loadStage(index) {
   const stage = stages[index];
+  canRestartCurrentStage = !isMemoryMazeStage(stage);
   currentMaze = stage.maze.map((row) => [...row]);
   moveCount = 0;
   visited = createVisitedGrid();
@@ -229,6 +262,27 @@ function loadStage(index) {
   markVisited(player.x, player.y);
   updateUI();
   hideOverlay();
+
+  if (previewTimer) {
+    clearTimeout(previewTimer);
+    previewTimer = null;
+  }
+
+  if (stage.previewSeconds) {
+    isPreviewingStage = true;
+    isLocked = true;
+    drawGame();
+
+    previewTimer = setTimeout(() => {
+      isPreviewingStage = false;
+      isLocked = false;
+      drawGame();
+    }, stage.previewSeconds * 1000);
+
+    return;
+  }
+
+  isPreviewingStage = false;
   drawGame();
 }
 
@@ -262,6 +316,8 @@ function updateUI() {
   if (mobileMovesEl) mobileMovesEl.textContent = String(moveCount);
   if (mobileRemainingEl)
     mobileRemainingEl.textContent = String(Math.max(remainingMoves, 0));
+
+  updateRestartButtonState();
 }
 
 function showOverlay({
@@ -287,6 +343,91 @@ function showOverlay({
 
 function hideOverlay() {
   overlayEl.classList.add("hidden");
+}
+
+function renderStageSelectList() {
+  if (!stageSelectListEl) return;
+
+  stageSelectListEl.innerHTML = "";
+
+  stages.forEach((stage, index) => {
+    const stageNumber = index + 1;
+    const isActive = index === currentStageIndex;
+    const isLockedStage = stageNumber > UPDATE_STAGE_NUMBER;
+    const isSameStageRestartBlocked =
+      index === currentStageIndex && !canUseRestartButton();
+
+    const button = document.createElement("button");
+    button.type = "button";
+
+    button.className = [
+      "stage-select-item",
+      isActive ? "is-active" : "",
+      isLockedStage ? "is-locked" : "",
+      isSameStageRestartBlocked ? "is-restart-locked" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    button.disabled = isLockedStage || isSameStageRestartBlocked;
+
+    const title = document.createElement("span");
+    title.className = "stage-select-item-title";
+    title.textContent = isLockedStage ? `🔒 ${stage.name}` : stage.name;
+
+    const meta = document.createElement("span");
+    meta.className = "stage-select-item-meta";
+
+    if (isLockedStage) {
+      meta.textContent = "순서대로 클리어 필요";
+    } else {
+      meta.textContent = `이동 제한 ${stage.moveLimit}회`;
+    }
+
+    if (isSameStageRestartBlocked) {
+      meta.textContent = "클리어/실패 후 다시하기 가능";
+    } else if (isLockedStage) {
+      meta.textContent = "순서대로 클리어 필요";
+    } else {
+      meta.textContent = `이동 제한 ${stage.moveLimit}회`;
+    }
+
+    button.appendChild(title);
+    button.appendChild(meta);
+
+    if (!isLockedStage) {
+      button.addEventListener("click", () => {
+        closeStageSelectModal(false);
+
+        hideOverlay();
+        isLocked = false;
+        currentStageIndex = index;
+        loadStage(currentStageIndex);
+      });
+    }
+
+    stageSelectListEl.appendChild(button);
+  });
+}
+
+function openStageSelectModal() {
+  if (!stageSelectModalEl) return;
+
+  stageSelectPreviousLocked = isLocked;
+  isLocked = true;
+
+  renderStageSelectList();
+  stageSelectModalEl.classList.remove("hidden");
+}
+
+function closeStageSelectModal(restoreLock = true) {
+  if (!stageSelectModalEl) return;
+
+  stageSelectModalEl.classList.add("hidden");
+
+  if (restoreLock) {
+    isLocked = stageSelectPreviousLocked;
+  }
 }
 
 function drawRoundedRect(x, y, size, radius, fillStyle) {
@@ -461,6 +602,7 @@ function drawFog() {
   const stage = getCurrentStage();
   if (!stage.fog) return;
   if (!currentMaze || currentMaze.length === 0) return;
+  if (isPreviewingStage) return;
 
   for (let y = 0; y < currentMaze.length; y++) {
     if (!currentMaze[y]) continue;
@@ -478,12 +620,14 @@ function drawFog() {
       const isGoalTile =
         isGoalVisible() && x === goalPosition.x && y === goalPosition.y;
 
-      if (isVisible || isGoalTile) continue;
+      const shouldKeepGoalVisible = isGoalTile && !stage.hideGoalAfterPreview;
+
+      if (isVisible || shouldKeepGoalVisible) continue;
 
       if (wasVisited) {
         ctx.fillStyle = "rgba(18, 12, 10, 0.88)";
       } else {
-        ctx.fillStyle = "rgba(8, 5, 4, 0.97)";
+        ctx.fillStyle = "rgba(8, 5, 4, 0.995)";
       }
 
       ctx.fillRect(px, py, tileSize, tileSize);
@@ -573,6 +717,9 @@ function canMoveTo(nextX, nextY) {
 function handleStageClear() {
   const stage = getCurrentStage();
   saveBestRecord(stage.id, moveCount);
+
+  canRestartCurrentStage = true;
+
   updateUI();
   isLocked = true;
 
@@ -618,6 +765,8 @@ function handleStageClear() {
 
 function handleStageFail() {
   isLocked = true;
+  canRestartCurrentStage = true;
+  updateUI();
 
   showOverlay({
     tag: "FAILED",
@@ -742,13 +891,32 @@ startBtn.addEventListener("click", () => {
 });
 
 restartBtn.addEventListener("click", () => {
+  if (!canUseRestartButton()) {
+    alert("기억의 미로는 클리어하거나 실패했을 때만 다시 도전할 수 있어요.");
+    return;
+  }
+
   hideOverlay();
   isLocked = false;
   loadStage(currentStageIndex);
 });
 
+stageSelectBtn.addEventListener("click", () => {
+  openStageSelectModal();
+});
+
+stageSelectCloseBtn.addEventListener("click", () => {
+  closeStageSelectModal();
+});
+
+stageSelectModalEl.addEventListener("click", (e) => {
+  if (e.target === stageSelectModalEl) {
+    closeStageSelectModal();
+  }
+});
+
 updateStageBtn.addEventListener("click", () => {
-  const targetStageNumber = 9;
+  const targetStageNumber = UPDATE_STAGE_NUMBER;
 
   if (targetStageNumber < 1 || targetStageNumber > stages.length) {
     alert("해당 스테이지는 아직 준비되지 않았어요.");
