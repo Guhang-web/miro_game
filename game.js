@@ -36,7 +36,7 @@ const PLAYER_IMAGE_PATH = "./img/mung1.png";
 const GRID_SIZE = 10;
 const BASE_CANVAS_SIZE = 480;
 const STORAGE_KEY = "cat-maze-best-records";
-const UPDATE_STAGE_NUMBER = 13;
+const UPDATE_STAGE_NUMBER = 14;
 
 canvas.width = BASE_CANVAS_SIZE;
 canvas.height = BASE_CANVAS_SIZE;
