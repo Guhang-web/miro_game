@@ -36,7 +36,13 @@ const PLAYER_IMAGE_PATH = "./img/mung1.png";
 const GRID_SIZE = 10;
 const BASE_CANVAS_SIZE = 480;
 const STORAGE_KEY = "cat-maze-best-records";
-const UPDATE_STAGE_NUMBER = 14;
+const UPDATE_STAGE_NUMBER = 19;
+
+// 원하는 스테이지 이동하기에서 강제로 잠글 스테이지
+const STAGE_SELECT_LOCKED_STAGE_IDS = new Set([15, 16, 17, 18, 20, 21, 22]);
+
+// 현재 스테이지 다시하기를 막을 스테이지
+const RESTART_LOCKED_STAGE_IDS = new Set([15, 16, 17, 18, 20, 21, 22]);
 
 canvas.width = BASE_CANVAS_SIZE;
 canvas.height = BASE_CANVAS_SIZE;
@@ -81,14 +87,14 @@ function getRemainingMoves() {
   return getCurrentStage().moveLimit - moveCount;
 }
 
-function isMemoryMazeStage(stage = getCurrentStage()) {
-  return stage.memoryMaze === true;
+function isRestartLockedStage(stage = getCurrentStage()) {
+  return stage.memoryMaze === true || RESTART_LOCKED_STAGE_IDS.has(stage.id);
 }
 
 function canUseRestartButton() {
   const stage = getCurrentStage();
 
-  if (!isMemoryMazeStage(stage)) return true;
+  if (!isRestartLockedStage(stage)) return true;
 
   return canRestartCurrentStage;
 }
@@ -233,7 +239,7 @@ function isGoalVisible() {
 
 function loadStage(index) {
   const stage = stages[index];
-  canRestartCurrentStage = !isMemoryMazeStage(stage);
+  canRestartCurrentStage = !isRestartLockedStage(stage);
   currentMaze = stage.maze.map((row) => [...row]);
   moveCount = 0;
   visited = createVisitedGrid();
@@ -353,7 +359,11 @@ function renderStageSelectList() {
   stages.forEach((stage, index) => {
     const stageNumber = index + 1;
     const isActive = index === currentStageIndex;
-    const isLockedStage = stageNumber > UPDATE_STAGE_NUMBER;
+
+    const isLockedStage =
+      stageNumber > UPDATE_STAGE_NUMBER ||
+      STAGE_SELECT_LOCKED_STAGE_IDS.has(stage.id);
+
     const isSameStageRestartBlocked =
       index === currentStageIndex && !canUseRestartButton();
 
@@ -378,16 +388,12 @@ function renderStageSelectList() {
     const meta = document.createElement("span");
     meta.className = "stage-select-item-meta";
 
-    if (isLockedStage) {
-      meta.textContent = "순서대로 클리어 필요";
-    } else {
-      meta.textContent = `이동 제한 ${stage.moveLimit}회`;
-    }
-
     if (isSameStageRestartBlocked) {
       meta.textContent = "클리어/실패 후 다시하기 가능";
-    } else if (isLockedStage) {
-      meta.textContent = "순서대로 클리어 필요";
+    } else if (STAGE_SELECT_LOCKED_STAGE_IDS.has(stage.id)) {
+      meta.textContent = "기억력 스테이지는 직접 이동 불가";
+    } else if (stageNumber > UPDATE_STAGE_NUMBER) {
+      meta.textContent = "업데이트 예정";
     } else {
       meta.textContent = `이동 제한 ${stage.moveLimit}회`;
     }
@@ -395,7 +401,7 @@ function renderStageSelectList() {
     button.appendChild(title);
     button.appendChild(meta);
 
-    if (!isLockedStage) {
+    if (!isLockedStage && !isSameStageRestartBlocked) {
       button.addEventListener("click", () => {
         closeStageSelectModal(false);
 
@@ -620,7 +626,10 @@ function drawFog() {
       const isGoalTile =
         isGoalVisible() && x === goalPosition.x && y === goalPosition.y;
 
-      const shouldKeepGoalVisible = isGoalTile && !stage.hideGoalAfterPreview;
+      const shouldKeepGoalVisible =
+        isGoalTile &&
+        (!stage.hideGoalAfterPreview ||
+          (stage.requiresKey && stage.revealGoalWithKey && hasKey));
 
       if (isVisible || shouldKeepGoalVisible) continue;
 
